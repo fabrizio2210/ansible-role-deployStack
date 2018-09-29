@@ -5,44 +5,13 @@
   set_fact:
     yaml_file: "{{ deploy_stack_stack_file | basename }}"
     stack_name: "{{ (deploy_stack_stack_file | basename | splitext)[0] }}"
+  when: deploy_stack_stack_file is defined
 
-# Load YAMl as hash
-- name: load yaml as hash
-  include_vars:
-    file: "{{ deploy_stack_stack_file }}"
-    name: original_stack
-
-- debug:
-    msg: "{{ item.key }}"
-  when: item.value is keyexists('traefik.port')
-  with_dict: "{{ original_stack['services']}}"
-
-# find the service expoxed, looking for traefik label
-- name: find the service expoxed, looking for traefik label
+- name: Set variables
   set_fact:
-    exposed_service: "{{ item.key }}"
-  when: item.value is keyexists('traefik.port')
-  with_dict: "{{ original_stack['services']}}"
-
-# insert own network
-- name: insert network
-  set_fact:
-    stack: "{{ original_stack|combine({item.0: item.1}) }}"
-  with_together:
-    - ['networks']
-    - "{{ [{ deploy_stack_traefik_backend_network : { 'external': True} }] }}"
-
-# insert own network in the exposed service
-- name: insert network in the service
-  set_fact:
-    stack: "{{ stack|combine({'services':{ exposed_service : {item.0: item.1}}}, recursive=True) }}"
-  with_together:
-    - ['networks']
-    - [ [ [ "{{deploy_stack_traefik_backend_network}}" ] ] ]
-
-- debug:
-    var: stack
-
+    yaml_file: "{{ deploy_stack_stack_name }}.yml"
+    stack_name: "{{ deploy_stack_stack_name }}"
+  when: deploy_stack_stack_hash is defined
 
 - name: Create the support folder
   file:
@@ -62,12 +31,20 @@
     path: "{{ deploy_stack_lib_folder }}/{{ yaml_file }}"
   when: ps_out is failed
 
+- name: Copy the yaml
+  copy:
+    src: "{{ deploy_stack_stack_file }}"
+    dest: "{{ deploy_stack_lib_folder }}/{{ yaml_file }}"
+  register: yamlcopying
+  when: deploy_stack_stack_file is defined
+
 # write hash as yaml
 - name: Write the yaml
   copy:
-    content: "{{ stack | to_nice_yaml }}"
+    content: "{{ deploy_stack_stack_hash | to_nice_yaml }}"
     dest: "{{ deploy_stack_lib_folder }}/{{ yaml_file }}"
   register: yamlcopying
+  when: deploy_stack_stack_hash is defined
 
 - name: remove preexisting stack
   command: "docker stack rm {{ stack_name }}"

@@ -29,7 +29,7 @@ Example Playbook
 
     - hosts: servers
       roles:
-         - { role: deploy-stack, deploy_stack_stack_hash: "'version': '3.2', 'services': [ { 'http': { 'image': 'fabrizio2210/rpi-busybox-httpd:latest' } } ]" }
+         - { role: deploy-stack, deploy_stack_stack_name: 'myApp', deploy_stack_stack_hash: "'version': '3.2', 'services': [ { 'http': { 'image': 'fabrizio2210/rpi-busybox-httpd:latest' } } ]" }
 License
 -------
 

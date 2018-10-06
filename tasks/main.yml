@@ -52,6 +52,16 @@
     - ps_out is succeeded
     - yamlcopying is changed
 
+- name: Check if the network is down
+  command: docker network ls
+  register: cmd_res
+  retries: 15
+  delay: 1
+  until: cmd_res.stdout_lines | select('search', ' ' + stack_name +'_default') | list | count == 0
+  when: 
+    - ps_out is succeeded
+    - yamlcopying is changed
+
 - name: Deploy the stack
   command: "docker stack deploy --resolve-image never --compose-file {{ deploy_stack_lib_folder }}/{{ yaml_file }} {{ stack_name }}"
   when: yamlcopying.changed

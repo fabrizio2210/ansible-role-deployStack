@@ -1,3 +1,4 @@
 ---
 # defaults file for deploy-stack
 deploy_stack_lib_folder: "/var/lib/deploy-stack"
+deploy_stack_unistall: False

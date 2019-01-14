@@ -1,0 +1,4 @@
+---
+
+- name: remove preexisting stack
+  command: "docker stack rm {{ stack_name }}"
